@@ -20,31 +20,38 @@ main(int argc, char *argv[])
 {
 	register int i;
 	int fd_serie;
-        int fd_socket;
+        int fd_socket = atoi(argv[1]);
 	unsigned char dato;
+	int fp;
+	char leer_mensaje[TAM_BUFFER];
+	
+	fp=open("cadenas.txt",0);
         printf("Programa serial el pid es:%d",getpid());
-        printf("Arg 0:%s\n",argv[0]);
-        printf("Arg 1:%s\n",argv[1]);
-	fd_serie = config_serial( "/dev/ttyACM0", B9600 );
-	printf("serial abierto con descriptor: %d\n", fd_serie);
-         
+	printf("Socket del cliente:%d\n",fd_socket);
+	
+	//fd_serie = config_serial( "/dev/ttyACM0", B9600 );
 	//Leemos N datos del UART
         struct posicion * ubicacion;
-
-	for( ; EVER;)
+	if( read (fd_socket, &leer_mensaje, TAM_BUFFER) < 0 )
 	{
+		perror ("Ocurrio algun problema al recibir datos del cliente");
+		exit(1);
+   	}
+	printf ("El cliente nos envio el siguiente mensaje: \n %s \n", leer_mensaje);
+	//for(;EVER;)
+	//{
 	  /* Hacer este proceso concurrente */
-		ubicacion = obtener_ubicacion(fd_serie);
-		write(fd_socket,ubicacion,);
-
+		ubicacion = obtener_ubicacion(fp);
                 if(ubicacion != NULL)
                 {
-                  imprimir_ubicacion(ubicacion);
-                  free(ubicacion);
+		  printf("La ubicacion enviada es: \n");
+		  imprimir_ubicacion(ubicacion);
+		  write(fd_socket,ubicacion,sizeof(ubicacion));	
+                 free(ubicacion);
                 }
-	}
+	//}
 
-	close( fd_serie );
+	close( fp );
 
 	return 0;
 }

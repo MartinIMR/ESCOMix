@@ -17,8 +17,8 @@ int main(int argc, char **argv)
 	int tamano_direccion, sockfd;
 	struct sockaddr_in direccion_servidor;
 	char leer_mensaje[TAM_BUFFER];
-        struct posicion * leida;
-        leida = (struct posicion *) malloc(sizeof(struct posicion));
+        struct posicion * ubicacion;
+
 /*	
  *	AF_INET - Protocolo de internet IPV4
  *  htons - El ordenamiento de bytes en la red es siempre big-endian, por lo que
@@ -59,25 +59,27 @@ int main(int argc, char **argv)
 /*
  *	Inicia la transferencia de datos entre cliente y servidor
  */
-	printf ("Mi pid es:%d Enviando mensaje al servidor ...\n",getpid());
-        sprintf(leer_mensaje,"Soy el cliente con pid %d\n",getpid());
-	if( write(sockfd,&leer_mensaje , TAM_BUFFER) < 0 )
-	{
-		perror("Ocurrio un problema en el envio de un mensaje al cliente");
-		exit(1);
-	}
-	printf ("Recibiendo contestacion del servidor ...\n");
-        for(;1;)
+        /*
+        char buffer[TAM_BUFFER];
+	if (read (sockfd, &buffer, sizeof(char) * 11 ) < 0)
         {
-	  if (read (sockfd, leida, sizeof(struct posicion)) < 0)
-	  {	
-		perror ("Ocurrio algun problema al recibir datos del cliente");
-		exit(1);
-	  }
-	  printf("El servidor envio la siguiente ubicacion\n");
-          imprimir_ubicacion(leida);
+	  perror ("Ocurrio algun problema al recibir datos del cliente");
+          exit(1);
+        } 
+	printf("El servidor envio:%s\n",buffer);
+	if (read (sockfd, &leida, sizeof(struct posicion)) < 0)
+	{	
+	  perror ("Ocurrio algun problema al recibir datos del cliente");
+	  exit(1);
+	}
+        */
+        ubicacion = (struct posicion *) malloc(sizeof(struct posicion));
+        if(read(sockfd,&ubicacion,sizeof(struct posicion)) < 0)
+        {
+	  perror ("Ocurrio algun problema al recibir datos del cliente");
         }
-	
+	printf("Latitud:%f\n",ubicacion->latitud);
+	printf("Longitud:%f\n",ubicacion->longitud);
 	printf ("Cerrando la aplicacion cliente\n");
 /*
  *	Cierre de la conexion

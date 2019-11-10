@@ -85,7 +85,7 @@ main(int argc, char **argv)
 		exit(1);
    	}
         sprintf(fdarg,"%d",cliente_sockfd);
-        char * args[3] = {fname,fdarg,NULL};
+        char * args[3] = {fname,fdarg,NULL}; //fname: Nombre Ejecutable, fdarg: Descriptor de socket
         pid_t pid = fork();
         if(!pid)
         {
@@ -97,7 +97,7 @@ main(int argc, char **argv)
 /*
  *	Inicia la transferencia de datos entre cliente y servidor
  */
-   	printf("Se aceptó un cliente, atendiendolo \n");
+   	/*printf("Se aceptó un cliente, atendiendolo \n");
    	if( read (cliente_sockfd, &leer_mensaje, TAM_BUFFER) < 0 )
 	{
 		perror ("Ocurrio algun problema al recibir datos del cliente");
