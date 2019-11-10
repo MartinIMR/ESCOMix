@@ -5,7 +5,7 @@
 #include "defs.h"
 
 void 
-imprimir_ubicacion(struct posicion * ubicacion)
+imprimir_posicion(struct posicion * ubicacion)
 {
   /*** 
   Por hacer darle un buen formato
@@ -25,7 +25,7 @@ imprimir_ubicacion(struct posicion * ubicacion)
 }
 
 struct posicion * 
-obtener_ubicacion(int fd_serie)
+obtener_posicion(int fd_serie)
 {
   
   /* Reservar espacio de las variables una sola vez para toda la ejecucion */

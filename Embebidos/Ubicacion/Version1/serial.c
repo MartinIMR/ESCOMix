@@ -10,9 +10,6 @@
 #include "reconocimiento.h"
 #include "defs.h"
 
-#define N  1024
-#define EVER 1
-
 int config_serial ( char *, speed_t );
 
 int 
@@ -45,7 +42,7 @@ main(int argc, char *argv[])
                 if(ubicacion != NULL)
                 {
 		  printf("La ubicacion enviada es: \n");
-		  imprimir_ubicacion(ubicacion);
+		  imprimir_posicion(ubicacion);
 		  write(fd_socket,ubicacion,sizeof(ubicacion));	
                  free(ubicacion);
                 }
