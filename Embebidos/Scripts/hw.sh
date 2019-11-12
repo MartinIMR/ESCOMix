@@ -31,17 +31,17 @@ do
   #echo "Digito en posicion $i:${digitos:$i:1}"
   digito=${digitos:$i:1}
   lista=$(secuencia $digito)
-  echo "Para el digito $digito la secuencia es ${lista[*]}"
+  #echo "Para el digito $digito la secuencia es ${lista[*]}"
   for j in ${lista[*]}; #Encender los leds
   do 
     echo "Encendiendo puerto BCM$j..."
-    #sudo echo "1" > /sys/class/gpio/gpio$j/value
+    sudo echo "1" > /sys/class/gpio/gpio$j/value
   done
   sleep 2 #Esperar dos segundos antes de apagar
   for j in ${lista[*]}; #Apagar los leds
   do 
     echo "Apagando puerto BCM$j..."
-    #sudo echo "0" > /sys/class/gpio/gpio$j/value
+    sudo echo "0" > /sys/class/gpio/gpio$j/value
   done
 done
 }
@@ -58,34 +58,34 @@ function secuencia() {
  # G => 27
  case $digito in
  0)
-  encendidos=( 5 6 17 22 24 25 )
+  encendidos=( 5 6 17 22 23 24 )
   ;;
  1)
   encendidos=( 6 17 )
   ;;
  2)
-  encendidos=( 5 6 27 24 22 )
+  encendidos=( 5 6 25 23 22 )
   ;;
  3)
-  encendidos=( 5 6 27 17 22 )
+  encendidos=( 5 6 17 22 25 )
   ;;
  4)
-  encendidos=( 25 6 27 17 )
+  encendidos=( 6 17 24 25 )
   ;;
  5)
-  encendidos=( 25 6 27 17 )
+  encendidos=( 5 17 22 24 25 )
   ;;
  6)
-  encendidos=( 5 17 22 24 25 27)
+  encendidos=( 5 17 22 23 24 25 )
   ;;
  7)
-  encendidos=( 5 6 17 27)
+  encendidos=( 5 6 17 25 )
   ;;
  8)
-  encendidos=( 5 6 17 22 24 25 27 )
+  encendidos=( 5 6 17 22 23 24 25 )
   ;;
  9)
-  encendidos=( 5 6 17 25 27 )
+  encendidos=( 5 6 17 22 24 25 )
   ;;
  *)
   echo "No es un digito numerico..."
@@ -109,7 +109,7 @@ echo "Escoja una opcion:"
 echo "1.-Ver serie"
 echo "2.-Visualizar boleta"
 read opcion
-#abrir_puertos ${puertos[*]}
+abrir_puertos ${puertos[*]}
   case $opcion in
    1)
     echo "Serie"
@@ -123,5 +123,5 @@ read opcion
     echo "Opcion invalida..."
     ;; 
    esac
-#cerrar_puertos ${puertos[*]}
+cerrar_puertos ${puertos[*]}
 exit 0
