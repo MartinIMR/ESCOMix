@@ -31,28 +31,60 @@ class MulMat
 				DataInputStream entrada = new DataInputStream(conexion.getInputStream());
 				DataOutputStream salida = new DataOutputStream(conexion.getOutputStream());
 				int nodo =  entrada.readInt();
+				/* Reservar espacio para matriz A y B */
+				int espacio = (N/2) * (N);
+				ByteBuffer bf = ByteBuffer.allocate( 2 * espacio * (Double.BYTES));
+				int iniA,iniB,finA,finB;
 				switch(nodo)
 				{
 					case 1:
+					/* Enviar A1 y B2 */
+					iniA = 0;
+					finA = (N/2) - 1;
+					iniB = N/2;
+					finB = N;
 					break;
 					case 2:
+					/* Enviar A2 y B1 */
+					iniA = N/2;
+					finA = N;
+					iniB = 0;
+					finB = (N/2) - 1;
 					break;
 					case 3:
+					/* Enviar A2 y B2 */
+					iniA = N/2;
+					finA = N;
+					iniB = N/2;
+					finB = N;
 					break;
 				}
-				// Enviar 5 numeros de punto flotante
-				ByteBuffer b = ByteBuffer.allocate(5*8);
-				b.putDouble(1.1);
-				b.putDouble(1.2);
-				b.putDouble(1.3);
-				b.putDouble(1.4);
-				b.putDouble(1.5);
-				byte[] a = b.array();
-				salida.write(a);
+				// Poner matriz A
+				for(; iniA < finA; iniA++ )
+				{
+					for(int j = 0; j < N; j++)
+					{
+						bf.putDouble(A[iniA][j]);
+					}
+				}
+				// Poner matriz B
+				for(; iniB < finB; iniB++ )
+				{
+					for(int j = 0; j < N; j++)
+					{
+						bf.putDouble(A[iniB][j]);
+					}
+				}
+				/* Escribir y enviar */
+				byte[] bArr = bf.array();
+				salida.write(bArr);
 				salida.flush();
+				salida.close();	
+				/* Recibir matriz */
+				
+				/* Indicar termino */
 				synchronized(lock){  nt++; }
 				entrada.close();
-				salida.close();	
 				conexion.close();
 			}catch(IOException ioe)
 			{
@@ -98,12 +130,18 @@ class MulMat
 				worker.start();
 		}
 		/* Calculo de cuadrante superior izquierdo */
+		// A1 * B1
 		int limite = (N/2) - 1 ;
-		for(int i = 0; i < limite; i++ )
+		for(int i = 0; i < limite; i++ ) //Filas de A
 		{
-			for(int j = 0; j < limite; j++)
+			for(int j = 0; j < limite; j++) //Filas de B
 			{
-				C[i][j] = A[i][j] * B[i][j]; 
+				 double suma = 0;
+				 for(int k = 0; k < N ; k++) //Columnas
+				 {
+					suma += A[i][k] + B[j][k]; 
+				 }
+				 C[i][j] = suma;
  			}
 		}
 		synchronized(lock){  nt++; }	/* Indicar termino de calculo */
@@ -120,13 +158,14 @@ class MulMat
 			DataOutputStream salida = new DataOutputStream(conexion.getOutputStream());
 			DataInputStream entrada = new DataInputStream(conexion.getInputStream());
 			salida.writeInt(nodo); //Enviar numero de nodo
-			// recibe 5 n�meros punto flotante
-            byte[] a = new byte[5*8];
-            entrada.read(a,0,5*8);
-            ByteBuffer b = ByteBuffer.wrap(a);
+			// Recibe la matriz A
+			int espacio = N * (N/2);
+            byte[] arrA = new byte[espacio*(Double.BYTES)];
+            entrada.read(arrA,0,5*8);
+            ByteBuffer bA = ByteBuffer.wrap(arrA);
             for (int i = 0; i < 5; i++)
 			{	
-              System.out.println(b.getDouble());    
+              System.out.println(bA.getDouble());    
 			}
 			salida.flush();
 			salida.close();
