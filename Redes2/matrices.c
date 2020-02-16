@@ -10,6 +10,9 @@ int ** matrizA, ** matrizB, **matrizC;
 int ** 
 crearMatriz(int, int);
 
+int ** 
+imprimeMatriz(int **, int, int);
+
 int 
 main(void)
 {
@@ -38,11 +41,14 @@ main(void)
  /* Filas para el padre (filas % hilos) */
  filas_padre = f1 % hilos;
 
- /* Creacion de las matrices 
+ /* Creacion de las matrices */
  matrizA = crearMatriz(f1,c1); 
  matrizB = crearMatriz(f2,c2);
  matrizC = crearMatriz(f1,c2);
- */
+ printf("Matriz A generada:\n");
+ imprimeMatriz(matrizA,f1,c1);
+ printf("Matriz B generada:\n");
+ imprimeMatriz(matrizB,f2,c2);
 
  /* Arreglo para guardar los ids de los hilos*/
  pthread_t *tids;
@@ -51,15 +57,15 @@ main(void)
  for( hilo = 0 ; hilo < hilos; hilo++)
  {
   printf("Creando hilo %d\n",hilo);
-  struct params * args = obtener_rango(hilo,filas_hilo); 
+  struct params * args = obtener_parametros(hilo,filas_hilo,c1,c2); 
   pthread_create(&tids[hilo],NULL,multiplica_matrices,(void *)args);
  }
-
  for( hilo = 0; hilo < hilos; hilo++)
  {
   pthread_join(tids[hilo],NULL);
  }
-
+ printf("Matriz C calculada:\n");
+ imprimeMatriz(matrizC,f1,c2);
  return 0;
 }
 
@@ -88,4 +94,19 @@ crearMatriz(int filas, int columnas)
     }
  }
  return matriz;
+}
+
+int ** 
+imprimeMatriz(int ** matriz, int filas, int columnas)
+{
+ register int i,j;
+ for( i = 0; i < filas; i++)
+ {
+    for( j = 0; j < columnas; j++)
+    {
+      printf("%d ",matriz[i][j]);
+    }
+    printf("\n");
+ }
+ printf("\n");
 }

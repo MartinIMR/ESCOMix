@@ -6,6 +6,8 @@ struct params
 {
   int inicio;
   int fin;
+  int columnas_m1;
+  int columnas_m2;
 };
 
 #endif

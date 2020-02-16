@@ -2,7 +2,7 @@
 #define HILOS_H
 
 void * multiplica_matrices(void * );
-struct params * obtener_rango(int ,int );
+struct params * obtener_parametros(int, int, int, int);
 
 #endif
 
