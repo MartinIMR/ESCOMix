@@ -113,21 +113,13 @@ class MulMat
 					finB = N;
 					break;
 				}
-				double leido;
-				System.out.println("---------Nodo numero "+nodo+" --------");
-				for (; iniA < finA; iniA++)
+				for (int i = iniA; i < finA; i++)
 				{	
-					for(; iniB < finB; iniB++)
+					for(int j = iniB; j < finB; j++)
 					{
-						leido =  bb.getDouble();
-						System.out.println("Fila"+iniA+" y columna:"+iniB);
-						System.out.println("Leido: "+leido+" en flujo de entrada");
-						System.out.println("");
-						
-						C[iniA][iniB] = leido;
+						C[i][j] = bb.getDouble();
 					}
 				}
-				System.out.println("Fin de nodo \n\n");
 				// Indicar termino 
 				synchronized(lock){  nt++; }
 				salida.close();	
@@ -210,10 +202,11 @@ class MulMat
 			DataInputStream entrada = new DataInputStream(conexion.getInputStream());
 			salida.writeInt(nodo); //Enviar numero de nodo
 			salida.flush();
+			System.out.println("Nodo "+nodo);
 			// Recibir matrices
 			int espacio = (N/2) * N;
-			System.out.println("El espacio reservado es:"+ espacio);
             byte[] bytes = new byte[espacio*(Double.BYTES)];
+			System.out.println("Recibiendo matrices...");
 			//Leer la primera matriz
             entrada.read(bytes,0, espacio * (Double.BYTES)); 
             ByteBuffer bb = ByteBuffer.wrap(bytes);
@@ -234,6 +227,7 @@ class MulMat
 					B[i][j] = bb.getDouble();
 				}
 			}
+			System.out.println("Matrices recibidas!");
 			//Multiplicar Matrices 
 			for(int i = 0; i < N/2; i++ ) //Filas de A
 		    {
@@ -247,7 +241,15 @@ class MulMat
 				   C[i][j] = suma;
  			    }
 		    }
-			
+			System.out.println("Se calculo el siguiente cuadrante:");
+			for(int i = 0; i < (N/2); i++){
+				for(int j = 0; j < (N/2); j++){
+					System.out.print(C[i][j]);
+				    System.out.print(" ");
+				}
+				System.out.println("");
+			}
+			System.out.println("Enviando...");
 			// Enviar matriz calculada 
 			espacio = (N/2) * (N/2);
 			bb = ByteBuffer.allocate(espacio * (Double.BYTES));
@@ -261,7 +263,7 @@ class MulMat
 			bytes = bb.array();
 			salida.write(bytes);
 			salida.flush();
-			
+			System.out.println("Enviado!");
 			/*
 			System.out.println("Matriz A recibida es:");
 			for(int i = 0; i < (N/2); i++){
@@ -283,6 +285,7 @@ class MulMat
 			entrada.close();
 			salida.close();
 			conexion.close();
+			System.out.println("Fin de nodo "+nodo);
 		}catch(IOException ioe)
 		{
 			ioe.printStackTrace();
