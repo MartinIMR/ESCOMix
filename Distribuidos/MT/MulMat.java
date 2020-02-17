@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 
 class MulMat
 {
-   protected static int N = 4;
+   protected static int N = 120;
    protected static int nt = 0;
    protected static double [][] A;
    protected static double [][] B;
@@ -31,97 +31,89 @@ class MulMat
 				DataInputStream entrada = new DataInputStream(conexion.getInputStream());
 				DataOutputStream salida = new DataOutputStream(conexion.getOutputStream());
 				int nodo =  entrada.readInt();
-				//Reservar espacio para matriz A y B 
+				//Reservar espacio para matriz A
 				int espacio = (N/2) * (N);
-				ByteBuffer bb = ByteBuffer.allocate(2 * espacio * (Double.BYTES));
+				ByteBuffer bb = ByteBuffer.allocate(espacio * (Double.BYTES));
 				int iniA = 0,iniB = 0,finA = 0,finB = 0;
 				switch(nodo)
 				{
 					case 1:
-					// Enviar A1 y B2
+					// Cuadrante superior derecho (A1 y B2)
 					iniA = 0;
-					finA = N/2;
-					
-					iniB = N/2;
+					finA = iniB = N/2;
 					finB = N;
 					break;
 					case 2:
-					// Enviar A2 y B1 
-					iniA = N/2;
+					// Cuadrante inferior izquierdo (A2 y B1) 
+					iniA = finB = N/2;
 					finA = N;
-					
 					iniB = 0;
-					finB = N/2;
 					break;
 					case 3:
-					// Enviar A2 y B2 
-					iniA = N/2;
-					finA = N;
-					
-					iniB = N/2;
-					finB = N;
+					// Cuadrante inferior derecho (A2 y B2) 
+					iniA = iniB = N/2;
+					finA = finB = N;
 					break;
 				}
-				for(; iniA < finA; iniA++ )
+				double checksum = 0;
+				for(int i = iniA; i < finA; i++ )
 				{
 					for(int j = 0; j < N; j++)
 					{
-						bb.putDouble(A[iniA][j]);
+						checksum += A[i][j];
+						bb.putDouble(A[i][j]);
 					}
 				}
-				for(; iniB < finB; iniB++ )
+				if( N > 9 )
 				{
-					for(int j = 0; j < N; j++)
-					{
-						bb.putDouble(B[iniB][j]);
-					}
+				  	System.out.println("Nodo "+nodo+".Checksum de matriz A a enviar:"+checksum);
 				}
-
-				// Escribir y enviar 
+				// Escribir y enviar matriz A 
 				byte[] bytes = bb.array();
 				salida.write(bytes);
 				salida.flush();
+				//Reservar espacio para matriz B
+				bb = ByteBuffer.allocate(espacio * (Double.BYTES));
+				checksum = 0;
+				for(int i = iniB; i < finB; i++ )
+				{
+					for(int j = 0; j < N; j++)
+					{
+						checksum += B[i][j];
+						bb.putDouble(B[i][j]);
+					}
+				}
+				if( N > 9 )
+				{
+				  	System.out.println("Nodo "+nodo+".Checksum de matriz B a enviar:"+checksum);
+				}
+				// Escribir y enviar matriz B
+				bytes = bb.array();
+				salida.write(bytes);
+				salida.flush();
+				
 				
 				// Recibir matriz calculada 
 				espacio = (N/2) * (N/2);
 				bytes = new byte[espacio*(Double.BYTES)];
 				entrada.read(bytes,0, espacio * (Double.BYTES)); 
 				bb = ByteBuffer.wrap(bytes);
-				//Usaremos iniA e iniB como donde iniciar en filas y columnas
-				//Usaremos finA y fibB como donde terminar en filas y columnas
-				switch(nodo)
-				{
-					case 1:
-					// Recibir cuadrante superior derecho
-					iniA = 0;
-					finA = N/2;
-					iniB = N/2;
-					finB = N;
-					break;
-					case 2:
-					// Recibir cuadrante inferior izquierdo
-					iniA = N/2;
-					finA = N;
-					iniB = 0;
-					finB = N/2;
-					break;
-					case 3:
-					// Recibir cuadrante inferior derecho
-					iniA = N/2;
-					finA = N;
-					iniB = N/2;
-					finB = N;
-					break;
-				}
+				checksum = 0;
 				for (int i = iniA; i < finA; i++)
 				{	
 					for(int j = iniB; j < finB; j++)
 					{
 						C[i][j] = bb.getDouble();
+						checksum += C[i][j];
 					}
+				}
+				if( N > 9 )
+				{
+				  	System.out.println("Nodo "+nodo+".Checksum de matriz C recibida:"+checksum);
 				}
 				// Indicar termino 
 				synchronized(lock){  nt++; }
+				System.out.println("Matriz de nodo "+nodo+" recibida");
 				salida.close();	
 				entrada.close();
 				conexion.close();
@@ -142,7 +134,7 @@ class MulMat
      }
 	 int nodo;
 	 nodo = Integer.valueOf(args[0]);
-	 
+	 System.err.println("Matrices de dimensiones "+N+"x"+N);
 	 if( nodo == 0)
 	 {
 	    A = new double[N][N];
@@ -158,11 +150,11 @@ class MulMat
 			}
 	    }
 		/* Trasponer B */
-		transponerMatriz(B);
 		System.out.println("Matriz A creada es:");
-		imprimirMatriz(A);
+		imprimirMatriz(A,N,N);
 		System.out.println("Matriz B creada es:");
-		imprimirMatriz(B);
+		imprimirMatriz(B,N,N);
+		transponerMatriz(B);
 		/* Esperar la conexion de los tres nodos */
 		ServerSocket servidor = new ServerSocket(50000);
 		for(byte i = 0; i < 3; i++)
@@ -171,8 +163,7 @@ class MulMat
 				Worker worker = new Worker(conexion);
 				worker.start();
 		}
-		/* Calculo de cuadrante superior izquierdo */
-		// A1 * B1
+		// Calculo de cuadrante superior izquierdo 
 		for(int i = 0; i < N/2; i++ ) //Filas de A
 		{
 			for(int j = 0; j < N/2; j++) //Filas de B
@@ -188,8 +179,7 @@ class MulMat
 		synchronized(lock){  nt++; }	// Indicar termino de calculo 
  		while( nt != 4 ){  Thread.sleep(1000);  } // Esperar finalizacion de todos los nodos
 		System.out.println("Matriz C calculada es:");
-		imprimirMatriz(C);
-		// Calcular checksum de la matriz C 
+		imprimirMatriz(C,N,N);
 	 }else
      {
 		A = new double[N/2][N];
@@ -210,13 +200,21 @@ class MulMat
 			//Leer la primera matriz
             entrada.read(bytes,0, espacio * (Double.BYTES)); 
             ByteBuffer bb = ByteBuffer.wrap(bytes);
+			
+			double checksum = 0;
             for (int i = 0; i < (N/2); i++)
 			{	
 				for(int j = 0; j < N; j++)
 				{
 					A[i][j] = bb.getDouble();
+					checksum += A[i][j];
 				}
 			}
+			if( N > 9 )
+			{
+				  	System.out.println("Checksum de matriz A recibida:"+checksum);
+			}
+			checksum = 0;
 			//Leer la segunda matriz
 			entrada.read(bytes,0, espacio * (Double.BYTES)); 
             bb = ByteBuffer.wrap(bytes);
@@ -225,7 +223,12 @@ class MulMat
 				for(int j = 0; j < N; j++)
 				{
 					B[i][j] = bb.getDouble();
+					checksum += B[i][j];
 				}
+			}
+			if( N > 9 )
+			{
+				  	System.out.println("Checksum de matriz B recibida:"+checksum);
 			}
 			System.out.println("Matrices recibidas!");
 			//Multiplicar Matrices 
@@ -241,47 +244,27 @@ class MulMat
 				   C[i][j] = suma;
  			    }
 		    }
-			System.out.println("Se calculo el siguiente cuadrante:");
-			for(int i = 0; i < (N/2); i++){
-				for(int j = 0; j < (N/2); j++){
-					System.out.print(C[i][j]);
-				    System.out.print(" ");
-				}
-				System.out.println("");
-			}
-			System.out.println("Enviando...");
+			System.out.println("Enviando cuadrante calculado...");
 			// Enviar matriz calculada 
 			espacio = (N/2) * (N/2);
 			bb = ByteBuffer.allocate(espacio * (Double.BYTES));
+			checksum = 0;
 			for(int i = 0; i < N/2; i++ )
 			{
 				for(int j = 0; j < N/2; j++)
 				{
 					bb.putDouble(C[i][j]);
+					checksum += C[i][j];
 				}
-			} 
+			}
+			if( N > 9 )
+			{
+				  	System.out.println("Checksum de matriz C calculada:"+checksum);
+			}			
 			bytes = bb.array();
 			salida.write(bytes);
 			salida.flush();
 			System.out.println("Enviado!");
-			/*
-			System.out.println("Matriz A recibida es:");
-			for(int i = 0; i < (N/2); i++){
-				for(int j = 0; j < N; j++){
-					System.out.print(A[i][j]);
-				    System.out.print(" ");
-				}
-				System.out.println("");
-			}	
-			System.out.println("Matriz B recibida es:");
-			for(int i = 0; i < (N/2); i++){
-				for(int j = 0; j < N; j++){
-					System.out.print(B[i][j]);
-				    System.out.print(" ");
-				}
-				System.out.println("");
-			}	
-			*/
 			entrada.close();
 			salida.close();
 			conexion.close();
@@ -294,18 +277,39 @@ class MulMat
 	 
    }
    
-    public static void imprimirMatriz(double [][] matriz)
+    public static void imprimirMatriz(double [][] matriz, int filas, int columnas)
    {
-	   for(int i = 0; i < N; i++) 
-		{
-			for (int j = 0; j < N; j++)
+	   if( filas < 9 || columnas < 9)
+	   {
+		 for(int i = 0; i < filas; i++) 
+		 { 
+			for (int j = 0; j < columnas; j++)
 			{
 				System.out.print(matriz[i][j]);
 				System.out.print(" ");
 			}
 			System.out.println("");
-	    }
+	     }
+		 System.out.println(" ");   
+	   }else
+	   {
+		 hacerChecksum(matriz,filas,columnas);  
+	   }
    }
+   
+    public static void hacerChecksum(double [][] matriz, int filas, int columnas)
+    {
+	   double suma = 0;
+	   for(int i = 0; i < filas; i++) 
+		{
+			for (int j = 0; j < columnas; j++)
+			{
+				suma += matriz[i][j];
+			}
+	    }
+		System.out.println("El checksum de la matriz es:"+suma);
+		System.out.println(" ");
+    }
    
    public static void transponerMatriz(double [][] matriz)
    {
