@@ -8,8 +8,7 @@ multiplica_matrices(void * args)
 {
     struct params * datos = (struct params *) args;
     extern int ** matrizA, ** matrizB, ** matrizC, num_hilos;
-    printf("Datos del hilo:\n");
-    register int i,j,k;
+    int i,j,k;
     int final = datos -> fin;
     int suma; 
     for( i = datos -> inicio; i < final; i++)

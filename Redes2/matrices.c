@@ -45,10 +45,12 @@ main(void)
  matrizA = crearMatriz(f1,c1); 
  matrizB = crearMatriz(f2,c2);
  matrizC = crearMatriz(f1,c2);
+ /*
  printf("Matriz A generada:\n");
  imprimeMatriz(matrizA,f1,c1);
  printf("Matriz B generada:\n");
  imprimeMatriz(matrizB,f2,c2);
+ */
 
  /* Arreglo para guardar los ids de los hilos*/
  pthread_t *tids;
