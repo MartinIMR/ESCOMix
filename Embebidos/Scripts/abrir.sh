@@ -6,6 +6,7 @@ function mostrar
 }
 
 echo "Introduce una carpeta para ver su contenido"
+echo "OI"
 read carp
 mostrar $carp
 exit 0
