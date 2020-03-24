@@ -1,0 +1,53 @@
+
+#!/bin/bash
+
+PATH_PID=/home/mimr/demonio.pid
+PID=$(cat $PATH_PID)
+
+function verificar() {
+
+  if [ -e $PATH_PID ]; then
+    if [ -d /proc/$PID ]; then
+      echo "Demonio existe"
+      return 0
+    fi
+  fi
+  echo "No existe $PATH_PID"
+  return 1
+}
+
+case $1 in
+  start)
+    if verificar ; then
+        echo "Demonio $PID en ejecucion, no es necesario iniciarlo"
+    else
+        echo "Iniciando demonio"
+        /usr/local/bin/mi_demonio
+    fi
+  ;;
+  stop)
+
+    if verificar ; then
+        echo "Deteniendo Demonio"
+        sudo kill -SIGTERM $PID
+    else
+        echo "Demonio no en ejecucion, no es necesario detenerlo"
+        /usr/local/bin/mi_demonio
+    fi
+  ;;
+  status)
+  echo "Opcion status"
+
+  if verificar ; then 
+   echo "Demonio $PID en ejecucion"
+  else 
+   echo "Demonio sin ejecucion"
+  fi
+
+  ;;
+  *)
+  echo "Sintaxis: $0 [start|stop|status]"
+  ;;
+esac
+
+exit 0
