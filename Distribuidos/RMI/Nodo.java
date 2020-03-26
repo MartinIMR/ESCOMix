@@ -6,10 +6,10 @@ public class Nodo extends UnicastRemoteObject implements InterM
   // el constructor default requiere reportar que puede producirse RemoteException
   public Nodo throws RemoteException
   {
-    super( );
+    super();
   }
   
-  public double[][] multiplica_matrices(double[][] A,double[][] B) throws RemoteException
+  public double[][] multiplica_matrices(double[][] A, double[][] B, int N) throws RemoteException
   {
     double[][] C = new double[N/2][N/2];
     for (int i = 0; i < N/2; i++)
@@ -18,4 +18,5 @@ public class Nodo extends UnicastRemoteObject implements InterM
           C[i][j] += A[i][k] * B[j][k];
     return C;
   }
+  
 }
